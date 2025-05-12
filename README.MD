@@ -74,3 +74,11 @@ curl -fsSL -o kernelify.sh https://raw.githubusercontent.com/Android-Artisan/and
 ```bash
 bash kernelify.sh
 ```
+
+
+## Contributors
+
+- Android Artisan
+- Windblade-Furisode
+- Kingslayer9988
+- YacineGTI-DZ
