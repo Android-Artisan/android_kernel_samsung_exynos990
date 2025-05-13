@@ -1,7 +1,7 @@
 ui_print("");
 ui_print("+----------------------------+");
 ui_print("|   Installing ArtisanKernel |");
-ui_print("|           V0.0.4           |");
+ui_print("|           V0.0.5           |");
 ui_print("+----------------------------+");
 ui_print("");
 ui_print("+----------------------------+");
