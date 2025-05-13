@@ -1,0 +1,19 @@
+name: Update Contributors List
+
+on:
+  push:
+    branches:
+      - main
+      - recovery
+
+jobs:
+  update-contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Update CONTRIBUTORS file
+        uses: tessus/update-contributors-list@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
