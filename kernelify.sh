@@ -23,7 +23,7 @@ prepare_repo() {
     echo " Searching for existing 'android_kernel_samsung_exynos990' folder..."
     echo "--------------------------------------------------------------------"
     echo " "
-    REPO_PATH=$(find / -type d -name "android_kernel_samsung_exynos990" 2>/dev/null | head -n 1)
+    REPO_PATH=$(find "$HOME" -type d -name "android_kernel_samsung_exynos990" 2>/dev/null | head -n 1)
 
     if [ -n "$REPO_PATH" ]; then
         echo "--------------------------------------------------------------------"
