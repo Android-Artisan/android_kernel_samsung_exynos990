@@ -39,12 +39,12 @@ done
 
 # Final ZIP
 pushd "$TMP_DIR" > /dev/null
-zip -r -qq "$OUTPUT_DIR/ArtisanKRNL-v0.0.4_990_UNOFFICIAL_KernelSU_NEXT.zip" . || { echo "❌ Failed to create universal zip"; exit 1; }
+zip -r -qq "$OUTPUT_DIR/ArtisanKRNL-v0.0.5_990_UNOFFICIAL_KernelSU_NEXT.zip" . || { echo "❌ Failed to create universal zip"; exit 1; }
 popd > /dev/null
 
 rm -rf "$TMP_DIR"
 
 echo "-----------------------------------------------------"
 echo " ✅ All-in-one TWRP flashable zip created:"
-echo "     → $OUTPUT_DIR/ArtisanKRNL-v0.0.4_990_UNOFFICIAL_KernelSU_NEXT.zip"
+echo "     → $OUTPUT_DIR/ArtisanKRNL-v0.0.5_990_UNOFFICIAL_KernelSU_NEXT.zip"
 echo "-----------------------------------------------------"
