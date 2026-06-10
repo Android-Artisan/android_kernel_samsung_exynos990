@@ -255,7 +255,8 @@ void press_state_func(struct work_struct* work)
 			continue;
 		}
 
-		tv->value = res.head_value;
+		// Cap the head boost frequency to prevent power spikes
+		tv->value = (res.head_value > 1500) ? 1500 : res.head_value;
 		pr_booster("Press State Func :::: Uniq(%d)'s Update Res(%d) Head Val(%d)",
 			tv->uniq_id, res.res_id, res.head_value);
 
