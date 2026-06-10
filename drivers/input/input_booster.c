@@ -360,7 +360,8 @@ void release_state_func(struct work_struct* work)
 			continue;
 
 		spin_lock(&write_qos_lock);
-		tv->value = res.tail_value;
+		// Cap the tail boost frequency to prevent sustained power drain
+		tv->value = (res.tail_value > 1200) ? 1200 : res.tail_value;
 		spin_unlock(&write_qos_lock);
 
 		qos_values[res.res_id] = get_qos_value(res.res_id);
