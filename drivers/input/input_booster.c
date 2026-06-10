@@ -134,7 +134,7 @@ void trigger_input_booster(struct work_struct* work)
 			if (!delayed_work_pending(&(ib->ib_timeout_work[IB_TAIL]))) {
 				queue_delayed_work(ib_unbound_highwq,
 					&(ib->ib_timeout_work[IB_TAIL]),
-					msecs_to_jiffies(ib->ib_dt->tail_time));
+					msecs_to_jiffies(ib->ib_dt->tail_time / 2));
 			} else {
 				pr_err(ITAG" IB Trigger Release :: tail timeout start");
 			}
