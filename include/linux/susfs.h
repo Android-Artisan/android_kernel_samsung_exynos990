@@ -237,3 +237,5 @@ void susfs_start_sdcard_monitor_fn(void);
 
 /* susfs_init */
 void susfs_init(void);
+
+#endif
