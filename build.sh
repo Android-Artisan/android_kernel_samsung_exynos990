@@ -1,5 +1,7 @@
 #!/bin/bash
 
+touch .scmversion
+
 abort()
 {
     cd -
