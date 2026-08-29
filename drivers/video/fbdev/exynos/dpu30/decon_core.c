@@ -3701,7 +3701,8 @@ static int decon_set_vrr(struct decon_device *decon,
 	vrr_config = &regs->vrr_config;
 	vrr_state = win_data->config[DECON_WIN_UPDATE_IDX].state;
 	if ((vrr_state != DECON_WIN_STATE_VRR_NORMALMODE) &&
-		(vrr_state != DECON_WIN_STATE_VRR_HSMODE)) {
+		(vrr_state != DECON_WIN_STATE_VRR_HSMODE) &&
+		(vrr_state != DECON_WIN_STATE_VRR_PASSIVEMODE_COMPAT)) {
 		decon_err("[VRR] %s:invalid win_state(%x)\n",
 				__func__, vrr_state);
 		return -EINVAL;
@@ -3718,8 +3719,18 @@ static int decon_set_vrr(struct decon_device *decon,
 		notify_fps_change(win_data->fps);
 #endif
 	vrr_config->fps = win_data->fps;
-	vrr_config->mode = (vrr_state == DECON_WIN_STATE_VRR_HSMODE) ?
-		WIN_VRR_HS_MODE : WIN_VRR_NORMAL_MODE;
+	/*
+	 * Passive mode does not exist on this panel generation. Newer HWC sends
+	 * 96/120 Hz as PASSIVE, so map those rates to HS. Keeping 48/60 Hz in
+	 * normal mode also prevents invalid combinations such as WQHD + HS.
+	 */
+	if (vrr_state == DECON_WIN_STATE_VRR_NORMALMODE)
+		vrr_config->mode = WIN_VRR_NORMAL_MODE;
+	else if (vrr_state == DECON_WIN_STATE_VRR_HSMODE)
+		vrr_config->mode = WIN_VRR_HS_MODE;
+	else
+		vrr_config->mode = (win_data->fps > 60) ?
+			WIN_VRR_HS_MODE : WIN_VRR_NORMAL_MODE;
 	regs->fps_update = VRR_UPDATE;
 	decon_info("[VRR] %s:%d%s\n",
 			__func__, vrr_config->fps,

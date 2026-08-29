@@ -535,6 +535,12 @@ struct decon_win_config {
 		DECON_WIN_STATE_MRESOL = 0x10000,
 		DECON_WIN_STATE_VRR_NORMALMODE= 0x20000,
 		DECON_WIN_STATE_VRR_HSMODE = 0x20001,
+		/*
+		 * Newer Samsung display HALs use a passive VRR state. Exynos 990
+		 * has no passive panel mode, so accept the ABI value and translate
+		 * it from the requested frame rate in decon_set_vrr().
+		 */
+		DECON_WIN_STATE_VRR_PASSIVEMODE_COMPAT = 0x20002,
 #ifdef CONFIG_SUPPORT_MASK_LAYER
 		DECON_WIN_STATE_FINGERPRINT = 0x30000,
 #endif
