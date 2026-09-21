@@ -71,6 +71,9 @@ enum {
 
 	/* Cgroup is frozen. */
 	CGRP_FROZEN,
+
+	/* Cgroup is being killed; new tasks must be terminated immediately. */
+	CGRP_KILL,
 };
 
 /* cgroup_root->flags */
