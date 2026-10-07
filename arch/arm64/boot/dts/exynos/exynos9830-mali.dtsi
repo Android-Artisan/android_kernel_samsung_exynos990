@@ -70,7 +70,7 @@
 		gpu_default_voltage = <793750>;
 		gpu_cold_minimum_vol = <0>;
 		gpu_voltage_offset_margin = <50000>;
-		gpu_tmu_control = <1>;
+		gpu_tmu_control = <0>;
 		gpu_temp_throttling_level_num = <9>;
 		gpu_temp_throttling = <975000 949000 936000 897000 800000 702000 572000 455000 377000>;
 		gpu_power_coeff = <625>;

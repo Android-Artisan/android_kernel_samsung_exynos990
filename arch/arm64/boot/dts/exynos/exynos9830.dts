@@ -422,9 +422,9 @@
 			};
 			LION_ENERGY: lion-energy {
 				mips-per-mhz = <806>;
-				power-coefficient = <860>;
+				power-coefficient = <1161>;
 				mips-per-mhz-s = <285>;
-				power-coefficient-s = <559>;
+				power-coefficient-s = <755>;
 				static-power-coefficient = <270>;
 
 				efficiency-weight = <33>;
@@ -3040,6 +3040,7 @@
 		};
 
 		gpu_thermal: G3D {
+			status = "disabled";
 			zone_name  = "G3D_THERMAL";
 			polling-delay-passive = <100>;
 			polling-delay = <0>;

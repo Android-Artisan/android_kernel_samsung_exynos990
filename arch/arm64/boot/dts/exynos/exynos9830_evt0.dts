@@ -2544,6 +2544,7 @@
 		};
 
 		gpu_thermal: G3D {
+			status = "disabled";
 			zone_name  = "G3D_THERMAL";
 			polling-delay-passive = <100>;
 			polling-delay = <0>;

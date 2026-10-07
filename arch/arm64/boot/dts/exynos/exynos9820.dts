@@ -1809,7 +1809,7 @@
 		gpu_default_voltage = <800000>;
 		gpu_cold_minimum_vol = <0>;
 		gpu_voltage_offset_margin = <37500>;
-		gpu_tmu_control = <1>;
+		gpu_tmu_control = <0>;
 		gpu_temp_throttling_level_num = <6>;
 		gpu_temp_throttling = <650000 572000 455000 325000 260000 156000>;
 		gpu_power_coeff = <625>;
@@ -2990,6 +2990,7 @@
 		};
 
 		gpu_thermal: G3D {
+			status = "disabled";
 			zone_name  = "G3D_THERMAL";
 			polling-delay-passive = <100>;
 			polling-delay = <0>;
