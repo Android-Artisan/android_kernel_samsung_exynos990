@@ -55,27 +55,8 @@ int gpex_thermal_gpu_normal(void)
 
 int gpex_thermal_gpu_throttle(int freq)
 {
-	int ret = 0;
-
-	if (!thermal.tmu_enabled) {
-		ret = gpex_clock_lock_clock(GPU_CLOCK_MAX_UNLOCK, TMU_LOCK, 0);
-		/* TODO: print warning that gpu must be throttled, but gpu thermal is disabled */
-		return ret;
-	}
-
-	ret = gpex_clock_lock_clock(GPU_CLOCK_MAX_LOCK, TMU_LOCK, freq);
-
-	if (ret) {
-		/* TODO: couldn't handle thermal throttling. print error log */
-		;
-	}
-
-	GPU_LOG_DETAILED(MALI_EXYNOS_DEBUG, LSI_TMU_VALUE, 0u, event,
-			 "tmu event throttling, frequency %d\n", freq);
-
-	gpexbe_debug_dbg_snapshot_thermal(freq);
-
-	return ret;
+	(void)freq;
+	return gpex_clock_lock_clock(GPU_CLOCK_MAX_UNLOCK, TMU_LOCK, 0);
 }
 
 /***********************************************************************
@@ -101,14 +82,11 @@ CREATE_SYSFS_DEVICE_READ_FUNCTION(show_tmu);
 
 static ssize_t set_tmu_control(const char *buf, size_t count)
 {
-	if (sysfs_streq("0", buf)) {
-		gpex_clock_lock_clock(GPU_CLOCK_MAX_UNLOCK, TMU_LOCK, 0);
-		thermal.tmu_enabled = false;
-	} else if (sysfs_streq("1", buf))
-		thermal.tmu_enabled = true;
-	else
-		GPU_LOG(MALI_EXYNOS_WARNING, "%s: invalid value - only [0 or 1] is available\n",
-			__func__);
+	/*
+	 * GPU thermal throttling disabled.
+	 * Always release the TMU clock lock.
+	 */
+	gpex_clock_lock_clock(GPU_CLOCK_MAX_UNLOCK, TMU_LOCK, 0);
 
 	return count;
 }
