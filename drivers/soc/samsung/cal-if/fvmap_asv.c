@@ -106,6 +106,7 @@ static void asv_voltage_init_table(struct asv_table_list **asv_table, char *name
 				else if (table->voltages_step != NULL)
 					asv_entry->voltage[k] = table->voltages_step[j * domain->num_of_group + k] * table->volt_step;
 
+				asv_entry->voltage[k] -= 37500; /* Undervolt intermediario de 37.5mV na CPU/GPU */
 				if (margin_domain != NULL) {
 					if (margin_domain->offset != NULL)
 						asv_entry->voltage[k] += margin_domain->offset[j * margin_domain->num_of_group + k];
