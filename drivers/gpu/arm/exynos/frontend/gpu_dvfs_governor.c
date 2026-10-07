@@ -119,8 +119,8 @@ static int gpu_dvfs_governor_default(int utilization)
 	if ((dvfs->step > gpex_clock_get_table_idx(gpex_clock_get_max_clock())) &&
 	    (utilization > dvfs->table[dvfs->step].max_threshold)) {
 		dvfs->step--;
-		if (dvfs->table[dvfs->step].clock > gpex_clock_get_max_clock_limit())
-			dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock_limit());
+//		if (dvfs->table[dvfs->step].clock > gpex_clock_get_max_clock_limit())
+//			dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock_limit());
 		dvfs->down_requirement = dvfs->table[dvfs->step].down_staycount;
 	} else if ((dvfs->step < gpex_clock_get_table_idx(gpex_clock_get_min_clock())) &&
 		   (utilization < dvfs->table[dvfs->step].min_threshold)) {
@@ -155,8 +155,8 @@ static int gpu_dvfs_governor_interactive(int utilization)
 			dvfs->step--;
 			dvfs->interactive.delay_count = 0;
 		}
-		if (dvfs->table[dvfs->step].clock > gpex_clock_get_max_clock_limit())
-			dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock_limit());
+//		if (dvfs->table[dvfs->step].clock > gpex_clock_get_max_clock_limit())
+//			dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock_limit());
 		dvfs->down_requirement = dvfs->table[dvfs->step].down_staycount;
 	} else if ((dvfs->step < gpex_clock_get_table_idx(gpex_clock_get_min_clock())) &&
 		   (utilization < dvfs->table[dvfs->step].min_threshold)) {
@@ -178,51 +178,18 @@ static int gpu_dvfs_governor_interactive(int utilization)
 
 static int gpu_dvfs_governor_joint(int utilization)
 {
-	int i;
-	int min_value;
-	int weight_util;
-	int utilT;
-	int weight_fmargin_clock;
-	int next_clock;
-	int diff_clock;
+	int max_step;
 
-	min_value = gpex_clock_get_min_clock();
-	next_clock = gpex_clock_get_cur_clock();
+	(void)utilization;
 
-	weight_util = gpu_weight_prediction_utilisation(utilization);
-	utilT = ((long long)(weight_util)*gpex_clock_get_cur_clock() / 100) >> 10;
-	weight_fmargin_clock =
-		utilT + ((gpex_clock_get_max_clock() - utilT) / 1000) * gpex_tsg_get_freq_margin();
+	max_step = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
 
-	if (weight_fmargin_clock > gpex_clock_get_max_clock()) {
-		dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
-	} else if (weight_fmargin_clock < gpex_clock_get_min_clock()) {
-		dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_min_clock());
-	} else {
-		for (i = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
-		     i <= gpex_clock_get_table_idx(gpex_clock_get_min_clock()); i++) {
-			diff_clock = (dvfs->table[i].clock - weight_fmargin_clock);
-			if (diff_clock < min_value) {
-				if (diff_clock >= 0) {
-					min_value = diff_clock;
-					next_clock = dvfs->table[i].clock;
-				} else {
-					break;
-				}
-			}
-		}
-		dvfs->step = gpex_clock_get_table_idx(next_clock);
-	}
-
-	GPU_LOG(MALI_EXYNOS_DEBUG,
-		"%s: F_margin[%d] weight_util[%d] utilT[%d] weight_fmargin_clock[%d] next_clock[%d], step[%d]\n",
-		__func__, gpex_tsg_get_freq_margin(), weight_util, utilT, weight_fmargin_clock,
-		next_clock, dvfs->step);
-	DVFS_ASSERT((dvfs->step >= gpex_clock_get_table_idx(gpex_clock_get_max_clock())) &&
-		    (dvfs->step <= gpex_clock_get_table_idx(gpex_clock_get_min_clock())));
+	dvfs->step = max_step;
+	dvfs->down_requirement = dvfs->table[max_step].down_staycount;
 
 	return 0;
 }
+
 #define weight_table_size 12
 #define WEIGHT_TABLE_MAX_IDX 11
 int gpu_weight_prediction_utilisation(int utilization)
@@ -407,8 +374,8 @@ static int gpu_dvfs_governor_dynamic(int utilization)
 			dvfs->step--;
 		}
 
-		if (dvfs->table[dvfs->step].clock > gpex_clock_get_max_clock_limit())
-			dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock_limit());
+//		if (dvfs->table[dvfs->step].clock > gpex_clock_get_max_clock_limit())
+//			dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock_limit());
 
 		dvfs->down_requirement = dvfs->table[dvfs->step].down_staycount;
 	} else if ((dvfs->step < min_clock_lev) &&
@@ -459,10 +426,9 @@ int gpu_dvfs_decide_next_freq(int utilization)
 
 	spin_lock_irqsave(&dvfs->spinlock, flags);
 	gpu_dvfs_get_next_level(utilization);
+	dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
+	dvfs->down_requirement = dvfs->table[dvfs->step].down_staycount;
 	spin_unlock_irqrestore(&dvfs->spinlock, flags);
-
-	if (gpex_clboost_check_activation_condition())
-		dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
 
 	return dvfs->table[dvfs->step].clock;
 }
@@ -478,7 +444,7 @@ int gpu_dvfs_governor_setting(int governor_type)
 	}
 
 	spin_lock_irqsave(&dvfs->spinlock, flags);
-	dvfs->step = gpex_clock_get_table_idx(governor_info[governor_type].start_clk);
+	dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
 	gpu_dvfs_get_next_level = (GET_NEXT_LEVEL)(governor_info[governor_type].governor);
 
 	dvfs->env_data.utilization = 80;
@@ -505,7 +471,7 @@ int gpu_dvfs_governor_setting_locked(int governor_type)
 	}
 
 	spin_lock_irqsave(&dvfs->spinlock, flags);
-	dvfs->step = gpex_clock_get_table_idx(governor_info[governor_type].start_clk);
+	dvfs->step = gpex_clock_get_table_idx(gpex_clock_get_max_clock());
 	gpu_dvfs_get_next_level = (GET_NEXT_LEVEL)(governor_info[governor_type].governor);
 
 	dvfs->governor_type = governor_type;
