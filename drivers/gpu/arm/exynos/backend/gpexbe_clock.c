@@ -100,6 +100,7 @@ static int gpexbe_clock_set_rate_direct_oc(int clk)
 {
 	int ret;
 	unsigned long pll_hz = g3d_local_get_pll_hz(clk);
+	unsigned long actual_pll_hz;
 	int margin_uv = g3d_local_get_margin_uv(clk);
 
 	if (!pll_hz)
@@ -122,6 +123,22 @@ static int gpexbe_clock_set_rate_direct_oc(int clk)
 			"G3D OC: direct PLL_G3D set to %lu Hz for %d KHz failed (ret=%d)\n",
 			pll_hz, clk, ret);
 		return ret;
+	}
+
+	actual_pll_hz = cal_clk_getrate(PLL_G3D);
+	if (!actual_pll_hz || (actual_pll_hz + 500) / 1000 != clk) {
+		GPU_LOG(MALI_EXYNOS_ERROR,
+			"G3D OC: requested PLL %lu Hz, read back %lu Hz\n",
+			pll_hz, actual_pll_hz);
+		return -ERANGE;
+	}
+
+	actual_pll_hz = cal_clk_getrate(PLL_G3D);
+	if (!actual_pll_hz || (actual_pll_hz + 500) / 1000 != clk) {
+		GPU_LOG(MALI_EXYNOS_ERROR,
+			"G3D OC: requested PLL %lu Hz, read back %lu Hz\n",
+			pll_hz, actual_pll_hz);
+		return -ERANGE;
 	}
 
 	g3d_local_cached_rate = clk;

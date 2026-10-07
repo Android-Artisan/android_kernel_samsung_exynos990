@@ -162,7 +162,9 @@ static int set_clock_using_calapi(int clk)
 
 	gpexbe_debug_dbg_snapshot_freq_in(clk_info.cur_clock, clk);
 
-	gpexbe_clock_set_rate(clk);
+	ret = gpexbe_clock_set_rate(clk);
+	if (ret)
+		goto err;
 
 	gpexbe_debug_dbg_snapshot_freq_out(clk_info.cur_clock, clk);
 
@@ -268,7 +270,9 @@ static int gpex_clock_set_helper(int clock)
 	if (is_up)
 		gpex_qos_set_from_clock(clock);
 
-	set_clock_using_calapi(clock);
+	ret = set_clock_using_calapi(clock);
+	if (ret)
+		return ret;
 
 	if (!is_up)
 		gpex_qos_set_from_clock(clock);
@@ -408,9 +412,9 @@ int gpex_clock_set(int clk)
 	gpex_pm_unlock();
 
 	/* QOS is set here */
-	gpex_clock_set_helper(target_clk);
-
-	ret = gpex_dvfs_set_clock_callback();
+	ret = gpex_clock_set_helper(target_clk);
+	if (!ret)
+		ret = gpex_dvfs_set_clock_callback();
 
 	mutex_unlock(&clk_info.clock_lock);
 
