@@ -8,9 +8,22 @@
 #include <linux/slab.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
+#include <linux/irqflags.h>
 #include "hashtab.h"
 
 static struct kmem_cache *hashtab_node_cachep;
+
+/*
+ * KernelSU-Next edits the policy in place while holding the SELinux policy
+ * rwlock, i.e. with preemption disabled.  A blocking allocation there is
+ * illegal (and CONFIG_DEBUG_ATOMIC_SLEEP=y will report it), so downgrade to
+ * an atomic allocation only when the current context cannot sleep.  Ordinary
+ * policy loads keep their blocking allocations and therefore their reliability.
+ */
+static inline gfp_t hashtab_alloc_gfp(gfp_t gfp)
+{
+	return (preempt_count() || irqs_disabled()) ? GFP_ATOMIC : gfp;
+}
 
 struct hashtab *hashtab_create(u32 (*hash_value)(struct hashtab *h, const void *key),
 			       int (*keycmp)(struct hashtab *h, const void *key1, const void *key2),
@@ -44,7 +57,13 @@ int hashtab_insert(struct hashtab *h, void *key, void *datum)
 	u32 hvalue;
 	struct hashtab_node *prev, *cur, *newnode;
 
-	cond_resched();
+	/*
+	 * cond_resched() is a macro that runs ___might_sleep() at the call
+	 * site; that check must be skipped while the policy rwlock is held
+	 * with preemption disabled.  _cond_resched() is a no-op there anyway.
+	 */
+	if (!preempt_count() && !irqs_disabled())
+		cond_resched();
 
 	if (!h || h->nel == HASHTAB_MAX_NODES)
 		return -EINVAL;
@@ -60,7 +79,7 @@ int hashtab_insert(struct hashtab *h, void *key, void *datum)
 	if (cur && (h->keycmp(h, key, cur->key) == 0))
 		return -EEXIST;
 
-	newnode = kmem_cache_zalloc(hashtab_node_cachep, GFP_KERNEL);
+	newnode = kmem_cache_zalloc(hashtab_node_cachep, hashtab_alloc_gfp(GFP_KERNEL));
 	if (!newnode)
 		return -ENOMEM;
 	newnode->key = key;
