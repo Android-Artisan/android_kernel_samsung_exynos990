@@ -995,7 +995,7 @@
 	panel-lookup {
 		panel-name = "ea8076_r8s_pre", "ea8079_r8s_dv", "ea8079_r8s_default", "s6e3fc3_r8s_default";
 		panel-ddi-info = <&ea8076 &ea8079 &s6e3fc3>;
-		panel-display-modes = <&r8s_pre_panel_display_modes &r8s_panel_display_modes &r8s_panel_display_modes>;
+		panel-display-modes = <&r8s_pre_panel_display_modes &r8s_ea8079_panel_display_modes &r8s_panel_display_modes>;
 		panel-lut = <
 			0x801080 0xF0F0F0 0x0 0x0	/* EA8076	1080X2400 R8 PANEL BRING UP */
 			0x800040 0xF000FF 0x1 0x1	/* EA8079	1080X2400 R8 PANEL DV */
