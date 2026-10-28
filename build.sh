@@ -199,7 +199,11 @@ fi
 # Build dtb
 echo "Building common exynos9830 Device Tree Blob Image..."
 echo "-----------------------------------------------"
-./toolchain/mkdtimg cfg_create build/out/$MODEL/dtb.img build/dtconfigs/exynos9830.cfg -d out/arch/arm64/boot/dts/exynos
+COMMON_DTB_CONFIG=build/dtconfigs/exynos9830.cfg
+if [[ "$MODEL" == "r8s" ]]; then
+    COMMON_DTB_CONFIG=build/dtconfigs/exynos9830-r8s.cfg
+fi
+./toolchain/mkdtimg cfg_create build/out/$MODEL/dtb.img "$COMMON_DTB_CONFIG" -d out/arch/arm64/boot/dts/exynos
 
 # Build dtbo
 echo "Building Device Tree Blob Output Image for "$MODEL"..."
