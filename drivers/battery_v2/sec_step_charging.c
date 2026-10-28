@@ -118,7 +118,7 @@ bool sec_bat_check_step_charging(struct sec_battery_info *battery)
 		value = battery->voltage_avg;
 	} else if (battery->step_charging_type & STEP_CHARGING_CONDITION_SOC) {
 		value = battery->capacity;
-		if (battery->siop_level < 100 || battery->lcd_status) {
+		if (sec_bat_effective_charge_siop(battery) < 100 || battery->lcd_status) {
 			step_condition = battery->pdata->step_charging_condition[battery->pdata->age_step][i] + 15;
 			curr_cnt = 0;
 		}
@@ -132,7 +132,7 @@ bool sec_bat_check_step_charging(struct sec_battery_info *battery)
 		}
 		i++;
 		if ((battery->step_charging_type & STEP_CHARGING_CONDITION_SOC) &&
-			(battery->siop_level < 100 || battery->lcd_status))
+			(sec_bat_effective_charge_siop(battery) < 100 || battery->lcd_status))
 			step_condition = battery->pdata->step_charging_condition[battery->pdata->age_step][i] + 15;
 		else
 			step_condition = battery->pdata->step_charging_condition[battery->pdata->age_step][i];
@@ -143,7 +143,7 @@ bool sec_bat_check_step_charging(struct sec_battery_info *battery)
 	if (i != battery->step_charging_status) {
 		/* this is only for no consuming current */
 		if ((battery->step_charging_type & STEP_CHARGING_CONDITION_CURRENT_NOW) &&
-			(battery->siop_level >= 100 && !battery->lcd_status) &&
+			(sec_bat_effective_charge_siop(battery) >= 100 && !battery->lcd_status) &&
 			battery->step_charging_status >= 0) {
 			int condition_curr;
 			condition_curr = max(battery->current_avg, battery->current_now);
@@ -249,7 +249,8 @@ bool sec_bat_check_dc_step_charging(struct sec_battery_info *battery)
 		while(step_soc < battery->dc_step_chg_step - 1) {
 			soc_condition = battery->pdata->dc_step_chg_cond_soc[battery->pdata->age_step][step_soc];
 			if (battery->step_charging_status >= 0 &&
-				(battery->siop_level < 100 || battery->lcd_status)) {
+				(sec_bat_effective_charge_siop(battery) < 100 ||
+				 battery->lcd_status)) {
 				soc_condition += DIRECT_CHARGING_FORCE_SOC_MARGIN;
 				force_change_step = true;
 			}
@@ -309,7 +310,7 @@ bool sec_bat_check_dc_step_charging(struct sec_battery_info *battery)
 			pr_info("%s : dc no charging status = %d \n", __func__, val.intval);
 			battery->dc_step_chg_iin_cnt = 0;
 			return false;
-		} else if (battery->siop_level >= 100 && !battery->lcd_status) {
+		} else if (sec_bat_effective_charge_siop(battery) >= 100 && !battery->lcd_status) {
 			val.intval = SEC_BATTERY_IIN_MA;
 			psy_do_property(battery->pdata->charger_name, get,
 					POWER_SUPPLY_EXT_PROP_MEASURE_INPUT, val);
@@ -346,8 +347,10 @@ check_dc_step_change:
 		(step != battery->step_charging_status && step == min(min(step_vol, step_soc), step_input))) {
 		if ((battery->dc_step_chg_type & STEP_CHARGING_CONDITION_INPUT_CURRENT) &&
 			(battery->step_charging_status >= 0)) {
-			if (battery->dc_step_chg_iin_cnt < battery->pdata->dc_step_chg_iin_check_cnt &&
-				(battery->siop_level >= 100 && !battery->lcd_status)) {
+			if (battery->dc_step_chg_iin_cnt <
+				battery->pdata->dc_step_chg_iin_check_cnt &&
+				(sec_bat_effective_charge_siop(battery) >= 100 &&
+				 !battery->lcd_status)) {
 				pr_info("%s : keep step(%d), curr_cnt(%d/%d)\n",
 					__func__, battery->step_charging_status,
 					battery->dc_step_chg_iin_cnt, battery->pdata->dc_step_chg_iin_check_cnt);

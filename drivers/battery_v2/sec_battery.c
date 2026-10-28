@@ -29,6 +29,30 @@
 bool sleep_mode = false;
 bool batt_boot_complete = false;
 
+/*
+ * Maximum wired charging mode.
+ *
+ * Samsung userspace may lower raw SIOP while wired charging.  In this
+ * charging stack raw SIOP < 100 can cap ICL/FCC, alter VBUS/PDO selection,
+ * change charging-timer semantics and modify wired/direct step-charging.
+ * Keep battery->siop_level untouched for Samsung telemetry/userspace and use
+ * an effective SIOP of 100 only inside the wired charging policy path.
+ *
+ * Independent protection paths remain active: LRP, AICL, direct-charger
+ * temperature, mix temperature, swelling, health/OVP, full/taper and
+ * charger-IC protection.  Default is OFF at boot.
+ */
+bool sec_bat_charge_max_mode_active(struct sec_battery_info *battery)
+{
+	return battery->charge_max_mode && battery->charging_enabled &&
+		!battery->store_mode && is_wired_type(battery->cable_type);
+}
+
+int sec_bat_effective_charge_siop(struct sec_battery_info *battery)
+{
+	return sec_bat_charge_max_mode_active(battery) ? 100 : battery->siop_level;
+}
+
 static enum power_supply_property sec_battery_props[] = {
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
@@ -391,16 +415,17 @@ __visible_for_testing int sec_bat_get_wireless_current(struct sec_battery_info *
 
 __visible_for_testing void sec_bat_get_charging_current_by_siop(struct sec_battery_info *battery,
 		int *input_current, int *charging_current) {
+	int siop_level = sec_bat_effective_charge_siop(battery);
 
-	if (battery->siop_level < 100  &&
-		!((battery->siop_level == 80) && is_wired_type(battery->cable_type))) {
+	if (siop_level < 100  &&
+		!((siop_level == 80) && is_wired_type(battery->cable_type))) {
 		int max_charging_current;
 
 		if (is_wireless_type(battery->cable_type)) {
 			max_charging_current = 1000; /* 1 step(70) */
-			if (battery->siop_level == 0) { /* 3 step(0) */
+			if (siop_level == 0) { /* 3 step(0) */
 				max_charging_current = 0;
-			} else if (battery->siop_level <= 10) { /* 2 step(10) */
+			} else if (siop_level <= 10) { /* 2 step(10) */
 				max_charging_current = 500;
 			}
 		}
@@ -413,7 +438,7 @@ __visible_for_testing void sec_bat_get_charging_current_by_siop(struct sec_batte
 			max_charging_current = 1800; /* 1 step(70) */
 		}
 
-		if (battery->siop_level == 0)
+		if (siop_level == 0)
 			max_charging_current = 100;
 
 		/* do forced set charging current */
@@ -438,10 +463,11 @@ __visible_for_testing void sec_bat_get_charging_current_by_siop(struct sec_batte
 				if (*input_current > battery->pdata->siop_hv_input_limit_current)
 					*input_current = battery->pdata->siop_hv_input_limit_current;
 				/* 2 step(0) for hv_wire_type */
-				if (battery->siop_level == 0 &&
+				if (siop_level == 0 &&
 					*input_current > battery->pdata->siop_hv_input_limit_current_2nd)
 					*input_current = battery->pdata->siop_hv_input_limit_current_2nd;
-				else if (battery->siop_level == 20 && battery->pdata->input_current_by_siop_20 > 0)
+				else if (siop_level == 20 &&
+					battery->pdata->input_current_by_siop_20 > 0)
 					*input_current = battery->pdata->input_current_by_siop_20;
 			}
 #if defined(CONFIG_CCIC_NOTIFIER)
@@ -449,7 +475,7 @@ __visible_for_testing void sec_bat_get_charging_current_by_siop(struct sec_batte
 			if (*input_current > (60000 / battery->input_voltage))
 				*input_current = 60000 / battery->input_voltage;
 			/* 2 step(0) for PD type */
-			if (battery->siop_level == 0 &&
+			if (siop_level == 0 &&
 				*input_current > battery->pdata->siop_hv_input_limit_current_2nd)
 				*input_current = battery->pdata->siop_hv_input_limit_current_2nd;
 #endif
@@ -547,7 +573,7 @@ static int sec_bat_check_mix_temp(struct sec_battery_info *battery, int input_cu
 	}
 #endif
 
-	if (battery->siop_level >= 100 && !battery->lcd_status &&
+	if (sec_bat_effective_charge_siop(battery) >= 100 && !battery->lcd_status &&
 		is_not_wireless_type(battery->cable_type)) {
 		if ((!battery->mix_limit &&
 				(battery->temperature > battery->pdata->mix_high_temp) && (chg_temp > high_chg_temp)) ||
@@ -1032,7 +1058,8 @@ static bool sec_bat_change_vbus(struct sec_battery_info *battery, int *input_cur
 	int lrp_step = LRP_NONE;
 
 	if (battery->store_mode || !battery->charging_enabled ||
-		((battery->siop_level == 80) && is_wired_type(battery->cable_type))) {
+		((sec_bat_effective_charge_siop(battery) == 80) &&
+		 is_wired_type(battery->cable_type))) {
 		pr_info("%s : store_mode(%d) charging_enabled(%d) siop(%d) ct(%d)\n",
 			__func__, battery->store_mode, battery->charging_enabled, battery->siop_level, battery->cable_type);
 		return false;
@@ -1055,7 +1082,7 @@ static bool sec_bat_change_vbus(struct sec_battery_info *battery, int *input_cur
 			target_vbus = SEC_INPUT_VOLTAGE_0V;
 		else if (battery->vbus_chg_by_full)
 			target_vbus = SEC_INPUT_VOLTAGE_5V;
-		else if (battery->siop_level >= 100 && lrp_step == LRP_NONE) {
+		else if (sec_bat_effective_charge_siop(battery) >= 100 && lrp_step == LRP_NONE) {
 			if (is_hv_wire_12v_type(battery->cable_type))
 				target_vbus = SEC_INPUT_VOLTAGE_12V;
 			else
@@ -1124,7 +1151,7 @@ static void sec_bat_check_direct_chg_temp(struct sec_battery_info *battery, int 
 
 	pt = sec_bat_check_lpm_power(lpcharge, power_type);
 
-	if (battery->siop_level >= 100) {
+	if (sec_bat_effective_charge_siop(battery) >= 100) {
 		if (!battery->chg_limit && is_apdo &&
 			((battery->dchg_temp >= battery->pdata->dchg_high_temp[pt]) ||
 			(battery->temperature >= battery->pdata->dchg_high_batt_temp[pt]))) {
@@ -1159,7 +1186,7 @@ static void sec_bat_check_afc_temp(struct sec_battery_info *battery, int *input_
 		return;
 
 #if defined(CONFIG_SUPPORT_HV_CTRL)
-	if (battery->siop_level >= 100) {
+	if (sec_bat_effective_charge_siop(battery) >= 100) {
 		if (!battery->chg_limit && is_hv_wire_type(battery->cable_type) && (battery->chg_temp >= battery->pdata->chg_high_temp)) {
 			*input_current = battery->pdata->chg_input_limit_current;
 			*charging_current = battery->pdata->chg_charging_limit_current;
@@ -1218,7 +1245,8 @@ static bool sec_bat_change_vbus_pd(struct sec_battery_info *battery, int *input_
 		return false;
 
 	if (battery->store_mode || !battery->charging_enabled ||
-		((battery->siop_level == 80) && is_wired_type(battery->cable_type))) {
+		((sec_bat_effective_charge_siop(battery) == 80) &&
+		 is_wired_type(battery->cable_type))) {
 		pr_info("%s : store_mode(%d) charging_enabled(%d) siop(%d) ct(%d)\n",
 			__func__, battery->store_mode, battery->charging_enabled, battery->siop_level, battery->cable_type);
 		return false;
@@ -1234,7 +1262,7 @@ static bool sec_bat_change_vbus_pd(struct sec_battery_info *battery, int *input_
 		lrp_step = sec_bat_get_lrp_step(battery);
 		pr_info("%s: lrp_step: %d siop(%d)\n", __func__, lrp_step, battery->siop_level);
 
-		if (battery->siop_level >= 100 && lrp_step == LRP_NONE) {
+		if (sec_bat_effective_charge_siop(battery) >= 100 && lrp_step == LRP_NONE) {
 			/* select PDO greater than 5V */
 			target_pd_index = battery->pd_list.max_pd_count - 1;
 		} else {
@@ -1287,7 +1315,9 @@ static void sec_bat_check_pdic_temp(struct sec_battery_info *battery, int *input
 	if (battery->pdata->chg_temp_check_type == SEC_BATTERY_TEMP_CHECK_NONE)
 		return;
 
-	if (battery->pdic_ps_rdy && battery->siop_level >= 100 && !battery->lcd_status) {
+	if (battery->pdic_ps_rdy &&
+		sec_bat_effective_charge_siop(battery) >= 100 &&
+		!battery->lcd_status) {
 		if ((!battery->chg_limit && (battery->chg_temp >= battery->pdata->chg_high_temp)) ||
 			(battery->chg_limit && (battery->chg_temp >= battery->pdata->chg_high_temp_recovery))) {
 			*input_current =
@@ -1930,7 +1960,8 @@ __visible_for_testing void sec_bat_set_charging_status(struct sec_battery_info *
 
 	switch (status) {
 	case POWER_SUPPLY_STATUS_CHARGING:
-		if (battery->siop_level < 100 || battery->lcd_status || battery->wc_tx_enable)
+		if (sec_bat_effective_charge_siop(battery) < 100 ||
+			battery->lcd_status || battery->wc_tx_enable)
 			battery->stop_timer = true;
 		break;
 	case POWER_SUPPLY_STATUS_NOT_CHARGING:
@@ -8904,6 +8935,7 @@ static int sec_battery_probe(struct platform_device *pdev)
 	battery->charging_next_time = 0;
 	battery->charging_fullcharged_time = 0;
 	battery->siop_level = 100;
+	battery->charge_max_mode = false;
 	battery->wc_enable = 1;
 	battery->wc_enable_cnt = 0;
 	battery->wc_enable_cnt_value = 3;

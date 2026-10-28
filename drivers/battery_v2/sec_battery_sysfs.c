@@ -52,6 +52,7 @@ static struct device_attribute sec_battery_attrs[] = {
 	SEC_BATTERY_ATTR(batt_vf_adc),
 	SEC_BATTERY_ATTR(batt_slate_mode),
 	SEC_BATTERY_ATTR(charging_enabled),
+	SEC_BATTERY_ATTR(charge_max_mode),
 
 	SEC_BATTERY_ATTR(batt_lp_charging),
 	SEC_BATTERY_ATTR(siop_activated),
@@ -498,6 +499,10 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 	case CHARGING_ENABLED:
 		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 			battery->charging_enabled);
+		break;
+	case CHARGE_MAX_MODE:
+		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
+			battery->charge_max_mode ? 1 : 0);
 		break;
 
 	case BATT_LP_CHARGING:
@@ -1892,6 +1897,26 @@ ssize_t sec_bat_store_attrs(
 					&battery->parse_mode_dt_work, 0);
 			queue_delayed_work(battery->monitor_wqueue,
 						&battery->monitor_work, 0);
+			ret = count;
+		}
+		break;
+	case CHARGE_MAX_MODE:
+		if (sscanf(buf, "%10d\n", &x) == 1) {
+			if (x != 0 && x != 1)
+				return -EINVAL;
+			if (battery->charge_max_mode == !!x)
+				return count;
+
+			battery->charge_max_mode = !!x;
+			dev_info(battery->dev, "%s: charge_max_mode=%d raw_siop=%d\n",
+				__func__, battery->charge_max_mode, battery->siop_level);
+
+			/* Re-evaluate ICL/FCC and VBUS/PDO policy immediately. */
+			wake_lock(&battery->siop_level_wake_lock);
+			queue_delayed_work(battery->monitor_wqueue,
+				&battery->siop_level_work, 0);
+			queue_delayed_work(battery->monitor_wqueue,
+				&battery->monitor_work, 0);
 			ret = count;
 		}
 		break;
