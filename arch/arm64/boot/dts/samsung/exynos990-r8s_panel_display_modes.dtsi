@@ -51,6 +51,90 @@
 
 			/* EA8079 & s6e3fc3 */
 
+			/* EA8079 has a calibrated 96-Hz command table; S6E3FC3 does not. */
+			r8s_ea8079_panel_display_modes:
+			r8s_ea8079_panel_display_modes {
+				native-mode = <&r8s_ea8079_panel_display_mode_1080x2400_120hs>;
+				exposed-mode = <
+					&r8s_ea8079_panel_display_mode_1080x2400_120hs
+					&r8s_ea8079_panel_display_mode_1080x2400_96hs
+					&r8s_ea8079_panel_display_mode_1080x2400_60hs
+				>;
+
+				/* fhd */
+				r8s_ea8079_panel_display_mode_1080x2400_120hs:
+				r8s_ea8079_panel_display_mode_1080x2400_120hs {
+					id = PANEL_DISPLAY_MODE_1080x2400_120HS;
+					width = <1080>;
+					height = <2400>;
+					/* timing parameters */
+					refresh_rate = <120>;			/* logical refresh rate */
+					refresh_mode = <1>;				/* 0:NS, 1:HS */
+					panel_refresh_rate = <120>;		/* panel internal refresh rate */
+					panel_refresh_mode = <1>;		/* 0:NS, 1:HS */
+					panel_te_st = <0>;				/* te rising */
+					panel_te_ed = <0>;				/* te falling */
+					panel_te_sw_skip_count = <0>;	/* s/w te modulation */
+					panel_te_hw_skip_count = <0>;	/* h/w te modulation */
+					/* dsc parameters */
+					dsc_en = <1>;			/* 0:Disable, 1:Enable */
+					dsc_cnt = <2>;			/* used DSC count */
+					dsc_slice_num = <2>;	/* count of dsc slice */
+					dsc_slice_w = <540>;	/* width of dsc slice */
+					dsc_slice_h = <40>;	/* height of dsc slice */
+					/* dsi parameters */
+					cmd_lp_ref = <7494>; /* orig: 1770 */
+				};
+
+				r8s_ea8079_panel_display_mode_1080x2400_96hs:
+				r8s_ea8079_panel_display_mode_1080x2400_96hs {
+					id = PANEL_DISPLAY_MODE_1080x2400_96HS;
+					width = <1080>;
+					height = <2400>;
+					/* timing parameters */
+					refresh_rate = <96>;			/* logical refresh rate */
+					refresh_mode = <1>;				/* 0:NS, 1:HS */
+					panel_refresh_rate = <96>;		/* panel internal refresh rate */
+					panel_refresh_mode = <1>;		/* 0:NS, 1:HS */
+					panel_te_st = <0>;				/* te rising */
+					panel_te_ed = <0>;				/* te falling */
+					panel_te_sw_skip_count = <0>;	/* s/w te modulation */
+					panel_te_hw_skip_count = <0>;	/* h/w te modulation */
+					/* dsc parameters */
+					dsc_en = <1>;			/* 0:Disable, 1:Enable */
+					dsc_cnt = <2>;			/* used DSC count */
+					dsc_slice_num = <2>;	/* count of dsc slice */
+					dsc_slice_w = <540>;	/* width of dsc slice */
+					dsc_slice_h = <40>;	/* height of dsc slice */
+					/* dsi parameters */
+					cmd_lp_ref = <7494>;
+				};
+
+				r8s_ea8079_panel_display_mode_1080x2400_60hs:
+				r8s_ea8079_panel_display_mode_1080x2400_60hs {
+					id = PANEL_DISPLAY_MODE_1080x2400_60HS;
+					width = <1080>;
+					height = <2400>;
+					/* timing parameters */
+					refresh_rate = <60>;			/* logical refresh rate */
+					refresh_mode = <1>;				/* 0:NS, 1:HS */
+					panel_refresh_rate = <60>;		/* panel internal refresh rate */
+					panel_refresh_mode = <1>;		/* 0:NS, 1:HS */
+					panel_te_st = <0>;				/* te rising */
+					panel_te_ed = <0>;				/* te falling */
+					panel_te_sw_skip_count = <0>;	/* s/w te modulation */
+					panel_te_hw_skip_count = <0>;	/* h/w te modulation */
+					/* dsc parameters */
+					dsc_en = <1>;			/* 0:Disable, 1:Enable */
+					dsc_cnt = <2>;			/* used DSC count */
+					dsc_slice_num = <2>;	/* count of dsc slice */
+					dsc_slice_w = <540>;	/* width of dsc slice */
+					dsc_slice_h = <40>;	/* height of dsc slice */
+					/* dsi parameters */
+					cmd_lp_ref = <7494>;
+				};
+			};
+
 			r8s_panel_display_modes:
 			r8s_panel_display_modes {
 				native-mode = <&r8s_panel_display_mode_1080x2400_120hs>;
