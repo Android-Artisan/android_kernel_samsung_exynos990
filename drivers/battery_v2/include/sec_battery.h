@@ -533,6 +533,9 @@ struct sec_battery_info {
 	bool charging_enabled;
 	bool charging_suspended;
 
+	/* Maximum wired charging: ignore userspace SIOP throttling only. */
+	bool charge_max_mode;
+
 	/* usb suspend */
 	int prev_usb_conf;
 
@@ -688,6 +691,8 @@ extern void sec_bat_get_battery_info(struct sec_battery_info *battery);
 extern int sec_bat_set_charge(struct sec_battery_info *battery, int chg_mode);
 extern int sec_bat_set_charging_current(struct sec_battery_info *battery);
 extern void sec_bat_refresh_charging_current(struct sec_battery_info *battery);
+extern bool sec_bat_charge_max_mode_active(struct sec_battery_info *battery);
+extern int sec_bat_effective_charge_siop(struct sec_battery_info *battery);
 extern void sec_bat_aging_check(struct sec_battery_info *battery);
 extern void sec_wireless_set_tx_enable(struct sec_battery_info *battery, bool wc_tx_enable);
 extern void sec_bat_check_wc_re_auth(struct sec_battery_info *battery);
