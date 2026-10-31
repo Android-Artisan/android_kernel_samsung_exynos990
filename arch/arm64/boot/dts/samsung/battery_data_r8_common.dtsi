@@ -150,8 +150,8 @@
 
 				battery,chg_input_limit_current = <1000>;
 				battery,chg_charging_limit_current = <1900>;
-				battery,dchg_input_limit_current = <1000>;
-				battery,dchg_charging_limit_current = <2000>;
+				battery,dchg_input_limit_current = <1500>;
+				battery,dchg_charging_limit_current = <3000>;
 
 				battery,charging_limit_by_tx_check = <1>;
 				battery,charging_limit_current_by_tx = <1100>;
@@ -237,7 +237,7 @@
 				battery,siop_hv_input_limit_current = <700>;
 				battery,siop_hv_charging_limit_current = <1000>;
 				battery,siop_apdo_input_limit_current = <1200>;
-				battery,siop_apdo_charging_limit_current = <2000>;
+				battery,siop_apdo_charging_limit_current = <3000>;
 
 				battery,siop_wireless_input_limit_current = <600>;
 				battery,siop_wireless_charging_limit_current = <850>;
