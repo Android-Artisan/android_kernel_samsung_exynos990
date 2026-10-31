@@ -8935,7 +8935,7 @@ static int sec_battery_probe(struct platform_device *pdev)
 	battery->charging_next_time = 0;
 	battery->charging_fullcharged_time = 0;
 	battery->siop_level = 100;
-	battery->charge_max_mode = false;
+	battery->charge_max_mode = true;
 	battery->wc_enable = 1;
 	battery->wc_enable_cnt = 0;
 	battery->wc_enable_cnt_value = 3;

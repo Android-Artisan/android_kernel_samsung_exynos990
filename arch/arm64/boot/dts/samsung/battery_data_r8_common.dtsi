@@ -23,7 +23,7 @@
 
 				charger,dchg_min_current = <2000>;
 				charger,dchg_temp_low_threshold = <180>;
-				charger,dchg_temp_high_threshold = <420>;
+				charger,dchg_temp_high_threshold = <450>;
 			};
 
 			battery {
@@ -140,18 +140,18 @@
 				battery,chg_gpio_full_check = <0>;
 				battery,chg_polarity_full_check = <1>;
 
-				battery,chg_high_temp = <470>;
-				battery,chg_high_temp_recovery = <450>;
+				battery,chg_high_temp = <500>;
+				battery,chg_high_temp_recovery = <480>;
 
-				battery,dchg_high_temp = <1000 1000 520 520>;
-				battery,dchg_high_temp_recovery = <1000 1000 460 460>;
-				battery,dchg_high_batt_temp = <1000 1000 400 400>;
-				battery,dchg_high_batt_temp_recovery = <1000 1000 380 380>;
+				battery,dchg_high_temp = <1000 1000 560 560>;
+				battery,dchg_high_temp_recovery = <1000 1000 500 500>;
+				battery,dchg_high_batt_temp = <1000 1000 430 430>;
+				battery,dchg_high_batt_temp_recovery = <1000 1000 410 410>;
 
 				battery,chg_input_limit_current = <1000>;
 				battery,chg_charging_limit_current = <1900>;
-				battery,dchg_input_limit_current = <1000>;
-				battery,dchg_charging_limit_current = <2000>;
+				battery,dchg_input_limit_current = <1500>;
+				battery,dchg_charging_limit_current = <3000>;
 
 				battery,charging_limit_by_tx_check = <1>;
 				battery,charging_limit_current_by_tx = <1100>;
@@ -201,8 +201,8 @@
 				battery,chg_ocp_current = <0>;
 				battery,chg_ocp_dtc = <100>;
 
-				battery,swelling_high_temp_block = <420>;
-				battery,swelling_high_temp_recov = <400>;
+				battery,swelling_high_temp_block = <450>;
+				battery,swelling_high_temp_recov = <430>;
 				battery,swelling_low_temp_block_1st = <150>;
 				battery,swelling_low_temp_recov_1st = <170>;
 				battery,swelling_low_temp_block_2nd = <50>;
@@ -237,7 +237,7 @@
 				battery,siop_hv_input_limit_current = <700>;
 				battery,siop_hv_charging_limit_current = <1000>;
 				battery,siop_apdo_input_limit_current = <1200>;
-				battery,siop_apdo_charging_limit_current = <2000>;
+				battery,siop_apdo_charging_limit_current = <3000>;
 
 				battery,siop_wireless_input_limit_current = <600>;
 				battery,siop_wireless_charging_limit_current = <850>;
